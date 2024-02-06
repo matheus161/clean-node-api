@@ -11,7 +11,8 @@ class AuthUseCase {
       throw new MissingParamError("loadUserByEmailRepositorySpy");
     if (!this.loadUserByEmailRepositorySpy.load)
       throw new InvalidParamError("loadUserByEmailRepositorySpy");
-    await this.loadUserByEmailRepositorySpy.load(email);
+    const user = await this.loadUserByEmailRepositorySpy.load(email);
+    if (!user) return null;
   }
 }
 
@@ -61,5 +62,15 @@ describe("Auth UseCase", () => {
     expect(promise).rejects.toThrow(
       new InvalidParamError("loadUserByEmailRepositorySpy")
     );
+  });
+
+  test("Should return null if LoadUserByEmailRepositorySpy returns null", async () => {
+    // Not found a user in the repository
+    const { sut } = makeSut();
+    const accessToken = await sut.auth(
+      "invalid_email@mail.com",
+      "any_password"
+    );
+    expect(accessToken).toBe(null);
   });
 });
