@@ -57,7 +57,6 @@ describe("LoadUserByEmail Repository", () => {
       state: "any_state",
       password: "hashed_password",
     });
-    console.log(fakeUser);
     const user = await sut.load("valid_email@mail.com");
     expect(user).toEqual({
       _id: fakeUser.insertedId,
