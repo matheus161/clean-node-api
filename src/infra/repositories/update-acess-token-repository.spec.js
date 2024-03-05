@@ -1,3 +1,4 @@
+const MissingParamError = require("../../utils/errors/missing-param-error");
 const MongoHelper = require("../helpers/mongo-helper");
 let db;
 
@@ -7,6 +8,12 @@ class UpdateAccessTokenRepository {
   }
 
   async update(userId, accessToken) {
+    if (!userId) {
+      throw new MissingParamError("userId");
+    }
+    if (!accessToken) {
+      throw new MissingParamError("accessToken");
+    }
     await this.userModel.updateOne(
       {
         _id: userId,
@@ -72,5 +79,20 @@ describe("UpdateAccessToken Repository", () => {
     });
     const promise = sut.update(fakeUser.ops[0]._id, "valid_token");
     expect(promise).rejects.toThrow();
+  });
+
+  test("should throw if no params are provided", async () => {
+    const { sut, userModel } = makeSut();
+    const fakeUser = await userModel.insertOne({
+      email: "valid_email@mail.com",
+      name: "any_name",
+      age: 50,
+      state: "any_state",
+      password: "hashed_password",
+    });
+    expect(sut.update()).rejects.toThrow(new MissingParamError("userId"));
+    expect(sut.update(fakeUser.ops[0]._id)).rejects.toThrow(
+      new MissingParamError("accessToken")
+    );
   });
 });
