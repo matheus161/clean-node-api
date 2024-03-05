@@ -1,6 +1,6 @@
 const MongoHelper = require("../helpers/mongo-helper");
 const MissingParamError = require("../../utils/errors/missing-param-error");
-const UpdateAccessTokenRepository = require("./update-acess-token-repository");
+const UpdateAccessTokenRepository = require("./update-access-token-repository");
 let db;
 
 const makeSut = () => {
