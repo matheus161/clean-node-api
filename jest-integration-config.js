@@ -1,3 +1,3 @@
-module.exports = {
-  testMatch: ["**/*.test.js"],
-};
+const config = require("./jest.config");
+config.testMatch = ["**/*.test.js"];
+module.exports = config;
