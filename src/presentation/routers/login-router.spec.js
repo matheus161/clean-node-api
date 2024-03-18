@@ -1,12 +1,10 @@
-const { UnauthorizedError, ServerError } = require("../errors");
-const { MissingParamError, InvalidParamError } = require("../../utils/errors");
 const LoginRouter = require("./login-router");
+const { MissingParamError, InvalidParamError } = require("../../utils/errors");
+const { ServerError, UnauthorizedError } = require("../errors");
 
 const makeSut = () => {
-  // Injeção de dependência
   const authUseCaseSpy = makeAuthUseCase();
   const emailValidatorSpy = makeEmailValidator();
-  authUseCaseSpy.accessToken = "valid_token";
   const sut = new LoginRouter({
     authUseCase: authUseCaseSpy,
     emailValidator: emailValidatorSpy,
@@ -47,8 +45,9 @@ const makeAuthUseCase = () => {
       return this.accessToken;
     }
   }
-
-  return new AuthUseCaseSpy();
+  const authUseCaseSpy = new AuthUseCaseSpy();
+  authUseCaseSpy.accessToken = "valid_token";
+  return authUseCaseSpy;
 };
 
 const makeAuthUseCaseWithError = () => {
@@ -70,40 +69,44 @@ describe("Login Router", () => {
     };
     const httpResponse = await sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(400);
-    expect(httpResponse.body).toEqual(new MissingParamError("email"));
+    expect(httpResponse.body.error).toBe(
+      new MissingParamError("email").message
+    );
   });
 
   test("Should return 400 if no password is provided", async () => {
     const { sut } = makeSut();
     const httpRequest = {
       body: {
-        email: "any_email@email.com",
+        email: "any_email@mail.com",
       },
     };
     const httpResponse = await sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(400);
-    expect(httpResponse.body).toEqual(new MissingParamError("password"));
+    expect(httpResponse.body.error).toBe(
+      new MissingParamError("password").message
+    );
   });
 
   test("Should return 500 if no httpRequest is provided", async () => {
     const { sut } = makeSut();
     const httpResponse = await sut.route();
     expect(httpResponse.statusCode).toBe(500);
-    expect(httpResponse.body).toEqual(new ServerError());
+    expect(httpResponse.body.error).toBe(new ServerError().message);
   });
 
-  test("Should return 500 if no httpRequest has no body", async () => {
+  test("Should return 500 if httpRequest has no body", async () => {
     const { sut } = makeSut();
     const httpResponse = await sut.route({});
     expect(httpResponse.statusCode).toBe(500);
-    expect(httpResponse.body).toEqual(new ServerError());
+    expect(httpResponse.body.error).toBe(new ServerError().message);
   });
 
   test("Should call AuthUseCase with correct params", async () => {
     const { sut, authUseCaseSpy } = makeSut();
     const httpRequest = {
       body: {
-        email: "any_email@email.com",
+        email: "any_email@mail.com",
         password: "any_password",
       },
     };
@@ -112,31 +115,31 @@ describe("Login Router", () => {
     expect(authUseCaseSpy.password).toBe(httpRequest.body.password);
   });
 
-  test("Should return 401 when invalid credentials provided", async () => {
+  test("Should return 401 when invalid credentials are provided", async () => {
     const { sut, authUseCaseSpy } = makeSut();
     authUseCaseSpy.accessToken = null;
     const httpRequest = {
       body: {
-        email: "invalid@email.com",
+        email: "invalid_email@mail.com",
         password: "invalid_password",
       },
     };
     const httpResponse = await sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(401);
-    expect(httpResponse.body).toEqual(new UnauthorizedError());
+    expect(httpResponse.body.error).toBe(new UnauthorizedError().message);
   });
 
   test("Should return 200 when valid credentials are provided", async () => {
     const { sut, authUseCaseSpy } = makeSut();
     const httpRequest = {
       body: {
-        email: "valid_email@email.com",
+        email: "valid_email@mail.com",
         password: "valid_password",
       },
     };
     const httpResponse = await sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(200);
-    expect(httpResponse.body.accessToken).toEqual(authUseCaseSpy.accessToken);
+    expect(httpResponse.body.accessToken).toBe(authUseCaseSpy.accessToken);
   });
 
   test("Should return 400 if an invalid email is provided", async () => {
@@ -144,20 +147,22 @@ describe("Login Router", () => {
     emailValidatorSpy.isEmailValid = false;
     const httpRequest = {
       body: {
-        email: "any_email",
+        email: "invalid_email@mail.com",
         password: "any_password",
       },
     };
     const httpResponse = await sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(400);
-    expect(httpResponse.body).toEqual(new InvalidParamError("email"));
+    expect(httpResponse.body.error).toBe(
+      new InvalidParamError("email").message
+    );
   });
 
   test("Should call EmailValidator with correct email", async () => {
     const { sut, emailValidatorSpy } = makeSut();
     const httpRequest = {
       body: {
-        email: "any_email@email.com",
+        email: "any_email@mail.com",
         password: "any_password",
       },
     };
@@ -185,13 +190,13 @@ describe("Login Router", () => {
     for (const sut of suts) {
       const httpRequest = {
         body: {
-          email: "any_email@email.com",
+          email: "any_email@mail.com",
           password: "any_password",
         },
       };
       const httpResponse = await sut.route(httpRequest);
       expect(httpResponse.statusCode).toBe(500);
-      expect(httpResponse.body).toEqual(new ServerError());
+      expect(httpResponse.body.error).toBe(new ServerError().message);
     }
   });
 
@@ -215,7 +220,7 @@ describe("Login Router", () => {
       };
       const httpResponse = await sut.route(httpRequest);
       expect(httpResponse.statusCode).toBe(500);
-      expect(httpResponse.body).toEqual(new ServerError());
+      expect(httpResponse.body.error).toBe(new ServerError().message);
     }
   });
 });
