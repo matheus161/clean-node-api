@@ -13,13 +13,15 @@ module.exports = class LoginRouterComposer {
     const loadUserByEmailRepository = new LoadUserByEmailRepository();
     const updateAccessTokenRepository = new UpdateAccessTokenRepository();
     const emailValidator = new EmailValidator();
-    const authUseCase = new AuthUseCase(
+    const authUseCase = new AuthUseCase({
       loadUserByEmailRepository,
       updateAccessTokenRepository,
       encrypter,
-      tokenGenerator
-    );
-
-    return new LoginRouter(authUseCase, emailValidator);
+      tokenGenerator,
+    });
+    return new LoginRouter({
+      authUseCase,
+      emailValidator,
+    });
   }
 };
