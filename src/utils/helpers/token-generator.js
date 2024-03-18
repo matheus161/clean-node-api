@@ -6,6 +6,7 @@ module.exports = class TokenGenerator {
   constructor(secret) {
     this.secret = secret;
   }
+
   async generate(id) {
     if (!this.secret) {
       throw new MissingParamError("secret");
@@ -13,6 +14,6 @@ module.exports = class TokenGenerator {
     if (!id) {
       throw new MissingParamError("id");
     }
-    return jwt.sign(id, this.secret);
+    return jwt.sign({ _id: id }, this.secret);
   }
 };

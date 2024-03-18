@@ -164,7 +164,9 @@ describe("Auth UseCase", () => {
     // Not found a user in the repository
     const { sut, loadUserByEmailRepositorySpy, tokenGeneratorSpy } = makeSut();
     await sut.auth("valid_email@mail.com", "valid_password");
-    expect(tokenGeneratorSpy.userId).toBe(loadUserByEmailRepositorySpy.user.id);
+    expect(tokenGeneratorSpy.userId).toBe(
+      loadUserByEmailRepositorySpy.user._id
+    );
   });
 
   test("Should call UpdateAccessTokenRepository with correct values", async () => {
@@ -177,7 +179,7 @@ describe("Auth UseCase", () => {
     } = makeSut();
     await sut.auth("valid_email@mail.com", "valid_password");
     expect(updateAccessTokenRepositorySpy.userId).toBe(
-      loadUserByEmailRepositorySpy.user.id
+      loadUserByEmailRepositorySpy.user._id
     );
     expect(updateAccessTokenRepositorySpy.accessToken).toBe(
       tokenGeneratorSpy.accessToken
